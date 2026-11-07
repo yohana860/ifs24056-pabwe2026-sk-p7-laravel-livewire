@@ -90,24 +90,8 @@ pipeline {
                     echo "=== PHP Dependencies Installed ==="
 
                     echo "=== Composer Audit (fail on vulnerabilities) ==="
-                    # Exit code 1 = ada advisory keamanan → pipeline FAILURE (tanpa retry).
-                    # Error lain (mis. timeout ke packagist.org) di-retry maksimal 3 kali,
-                    # lalu tetap FAILURE agar audit tidak pernah dilewati diam-diam.
-                    attempt=1
-                    until composer audit --no-interaction; do
-                        code=$?
-                        if [ "$code" -eq 1 ]; then
-                            echo "Composer audit menemukan vulnerability."
-                            exit 1
-                        fi
-                        if [ "$attempt" -ge 3 ]; then
-                            echo "Composer audit gagal dijalankan setelah $attempt percobaan (exit $code)."
-                            exit "$code"
-                        fi
-                        echo "Composer audit error (exit $code), mencoba lagi dalam 15 detik... ($attempt/3)"
-                        attempt=$((attempt + 1))
-                        sleep 15
-                    done
+                    # Exit non-zero jika ada advisory → pipeline FAILURE
+                    composer audit --no-interaction
                     echo "=== Composer Audit OK (no known vulnerabilities) ==="
                 '''
             }
